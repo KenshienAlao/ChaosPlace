@@ -1,141 +1,64 @@
+using Assets.Scripts.Npc;
 using Assets.Scripts.States;
 using UnityEngine;
 
 namespace Assets.Scripts.Player
 {
-    #region Required Components
-
     [RequireComponent(typeof(CharacterController))]
     [RequireComponent(typeof(PlayerInput))]
     [RequireComponent(typeof(Animator))]
     [RequireComponent(typeof(CombatController))]
+    [RequireComponent(typeof(CharacterIdentityController))]
+    [RequireComponent(typeof(NpcController))]
 
-    #endregion
-
-    public class PlayerController : MonoBehaviour
+    public class PlayerController : CharacterBase
     {
-        #region Components
-
-        private CharacterController characterController;
         private PlayerInput playerInput;
         private CameraController cameraController;
-        private Animator animator;
-        private CombatController combatController;
 
-        #endregion
-
-        #region State
-
-        public ActionState currentActionState = ActionState.Normal;
-        private string currentAnimation = "";
-        private Vector3 velocity;
-        private float currentSpeed;
-
-        #endregion
-
-        #region Inspector Settings
-
-        [Header("Movement Settings")]
-        [Range(0, 99)]
-        public float speed;
-
-        [Header("Sprint Settings")]
-        [Range(1, 5)]
-        public float sprintMultiplier = 2f;
-
-        [Header("Gravity")]
-        [Range(-99, 99)]
-        public float gravity = -10f;
-
-        #endregion
-
-        #region Unity Callbacks
-
-        /// <summary>
-        /// Gets the required components for the player controller.
-        /// </summary>
-        private void Awake()
+        protected override void Awake()
         {
-            characterController = VerifyReferenceComponent<CharacterController>(gameObject);
-            playerInput = VerifyReferenceComponent<PlayerInput>(gameObject);
-            animator = VerifyReferenceComponent<Animator>(gameObject);
-            combatController = VerifyReferenceComponent<CombatController>(gameObject);
-            cameraController = VerifyReferenceComponent<CameraController>(Camera.main.gameObject);
+            base.Awake();
+            playerInput = GetComponent<PlayerInput>();
+            cameraController = Camera.main.GetComponent<CameraController>();
         }
 
-        /// <summary>
-        /// Handles the player controller every frame.
-        /// </summary>
         private void Update()
         {
-            Controls();
-            CameraRotate();
+            TryFinishAction();
+            HandleInput();
+            HandleLocomotion();
+            ProcessAttackFrame("jab1", CombatController.LimbType.HandL, 0.45f, 0.60f);
+            HandleCameraRotation();
         }
 
-        #endregion
-
-        #region Controls
-
-        /// <summary>
-        /// Handles player movement, actions (like attacks), and locomotion animations.
-        /// </summary>
-        private void Controls()
+        private void HandleInput()
         {
-            // Check if the current action has completed
-            if (!CanMove)
-            {
-                AnimatorStateInfo stateInfo = animator.GetCurrentAnimatorStateInfo(0);
-                if (stateInfo.IsName(currentAnimation) && stateInfo.normalizedTime >= 1.0f && !animator.IsInTransition(0))
-                {
-                    currentActionState = ActionState.Normal;
-                }
-            }
+            if (CanMove && characterController.isGrounded && playerInput.attack && !playerInput.sprint)
+                PerformAction(ActionState.Attacking, "jab1");
+        }
 
-            // Process Action Inputs
-            if (CanMove && characterController.isGrounded)
-            {
-                if (playerInput.attack && !playerInput.sprint)
-                {
-                    currentActionState = ActionState.Attacking;
-                    PlayAnimation("jab1");
-                }
-            }
+        private void HandleLocomotion()
+        {
+            float currentSpeed = playerInput.sprint ? speed * sprintMultiplier : speed;
+            Vector3 input = cameraController.GetCameraRelativeInput();
 
-            // Process Locomotion Animations
             if (CanMove)
             {
-                Vector3 inputDirection = cameraController.GetCameraRelativeInput();
-
                 if (!characterController.isGrounded)
-                {
-                    currentActionState = ActionState.Jumping;
-                    PlayAnimation("jump");
-                }
-                else if (inputDirection == Vector3.zero)
-                {
-                    currentActionState = ActionState.Normal;
-                    PlayAnimation("idle");
-                }
+                    PerformAction(ActionState.Jumping, "jump");
+                else if (input == Vector3.zero)
+                    PerformAction(ActionState.Normal, "idle");
                 else if (playerInput.sprint)
-                {
-                    currentActionState = ActionState.Running;
-                    PlayAnimation("run");
-                }
+                    PerformAction(ActionState.Running, "run");
                 else
-                {
-                    currentActionState = ActionState.Walking;
-                    PlayAnimation("walk");
-                }
-            }
+                    PerformAction(ActionState.Walking, "walk");
 
-            // Calculate Physics & Movement
-            currentSpeed = playerInput.sprint ? speed * sprintMultiplier : speed;
-            Vector3 movementInput = cameraController.GetCameraRelativeInput();
+                velocity.x = currentSpeed * input.x;
+                velocity.z = currentSpeed * input.z;
 
-            if (CanMove)
-            {
-                velocity.x = currentSpeed * movementInput.x;
-                velocity.z = currentSpeed * movementInput.z;
+                if (playerInput.jump && characterController.isGrounded)
+                    velocity.y = Mathf.Sqrt(currentSpeed * -2f * gravity);
             }
             else
             {
@@ -143,101 +66,20 @@ namespace Assets.Scripts.Player
                 velocity.z = 0f;
             }
 
-            // Reset downward velocity if grounded
-            if (characterController.isGrounded && velocity.y < 0)
-            {
-                velocity.y = -2f;
-            }
-
-            // Jump
-            if (playerInput.jump && characterController.isGrounded && CanMove)
-            {
-                velocity.y = Mathf.Sqrt(currentSpeed * -2f * gravity);
-            }
-
-            // Gravity
-            velocity.y += gravity * Time.deltaTime;
-
-            // Move character controller
-            characterController.Move(velocity * Time.deltaTime);
+            ApplyGravity();
         }
 
-        /// <summary>
-        /// Rotates the player towards the movement direction.
-        /// </summary>
-        private void CameraRotate()
+        private void HandleCameraRotation()
         {
-            Vector3 inputDirection = cameraController.GetCameraRelativeInput();
-
             if (Camera.main != null) cameraController = Camera.main.GetComponent<CameraController>();
-            if (cameraController == null)
-            {
-                Debug.LogError("Camera controller is not found.");
-                return;
-            }
+            if (cameraController == null) return;
 
-            if (inputDirection != Vector3.zero)
+            Vector3 input = cameraController.GetCameraRelativeInput();
+            if (input != Vector3.zero)
             {
-                Quaternion targetRotation = Quaternion.LookRotation(inputDirection);
-                transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, speed * Time.deltaTime);
+                Quaternion target = Quaternion.LookRotation(input);
+                transform.rotation = Quaternion.Slerp(transform.rotation, target, speed * Time.deltaTime);
             }
         }
-
-        #endregion
-
-        #region Helpers
-
-        /// <summary>
-        /// Whether the player is allowed to move or take new inputs.
-        /// </summary>
-        private bool CanMove => currentActionState switch
-        {
-            ActionState.Attacking or ActionState.Grabbing or ActionState.Stunned => false,
-            _ => true
-        };
-
-        /// <summary>
-        /// Fetches a required component from the target GameObject and logs an error if missing.
-        /// </summary>
-        private T VerifyReferenceComponent<T>(GameObject target) where T : Component
-        {
-            if (target != null && target.TryGetComponent<T>(out var component)) return component;
-
-            Debug.LogError($"[{gameObject.name}] Missing required component: {typeof(T).Name} on {(target != null ? target.name : "null")}", this);
-            return null;
-        }
-        #endregion
-
-        #region Animation
-
-        /// <summary>
-        /// Plays an animation with crossfade. Skips if the same animation is already playing.
-        /// </summary>
-        public void PlayAnimation(string newAnimation, float crossfade = 0.1f)
-        {
-            if (currentAnimation == newAnimation) return;
-
-            animator.CrossFadeInFixedTime(newAnimation, crossfade);
-            currentAnimation = newAnimation;
-        }
-
-        /// <summary>
-        /// Forces an animation to play from the start, even if it's already playing.
-        /// </summary>
-        public void ForcePlayAnimation(string newAnimation, float crossfade = 0.05f)
-        {
-            animator.CrossFadeInFixedTime(newAnimation, crossfade, 0, 0f);
-            currentAnimation = newAnimation;
-        }
-
-        /// <summary>
-        /// Resets the current animation tracker, allowing any animation to be played next.
-        /// </summary>
-        public void ResetCurrentAnimation()
-        {
-            currentAnimation = "";
-        }
-
-        #endregion
     }
 }

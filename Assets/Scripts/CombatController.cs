@@ -5,34 +5,19 @@ namespace Assets.Scripts
 {
     public class CombatController : MonoBehaviour
     {
-        #region Enums
-        /// <summary>
-        /// Type of limb to enable.
-        /// </summary>
         public enum LimbType { HandL, HandR, LegL, LegR }
-        #endregion
 
-        #region Inspector
         [Header("Hitbox References")]
         [SerializeField] private GameObject HandLeft;
         [SerializeField] private GameObject HandRight;
         [SerializeField] private GameObject LegLeft;
         [SerializeField] private GameObject LegRight;
-        #endregion
 
-        #region References
-        /// <summary>
-        /// Dictionary to store hitbox references.
-        /// </summary>
         private Dictionary<LimbType, GameObject> hitboxMap;
-        #endregion
 
-        #region Unity Callbacks
-        /// <summary>
-        /// Cache hitboxes for fast access.
-        /// </summary>
-        private void Awake()
+        private void InitializeHitboxMap()
         {
+            if (hitboxMap != null) return;
             hitboxMap = new Dictionary<LimbType, GameObject>
             {
                 { LimbType.HandL, HandLeft },
@@ -40,29 +25,40 @@ namespace Assets.Scripts
                 { LimbType.LegL, LegLeft },
                 { LimbType.LegR, LegRight }
             };
+        }
 
+        private void Awake()
+        {
+            InitializeHitboxMap();
             foreach (var hitbox in hitboxMap.Values)
             {
-                if (hitbox != null) hitbox.SetActive(false);
+                if (hitbox == null) continue;
+                hitbox.SetActive(false);
+                var hb = hitbox.GetComponent<Hitbox>() ?? hitbox.AddComponent<Hitbox>();
+                hb.Owner = this;
             }
         }
-        #endregion
 
-        #region Public Methods
-        /// <summary>
-        /// Call this to toggle any hitbox instantly.
-        /// Example: SetHitboxState(LimbType.HandR, true);
-        /// </summary>
         public void SetHitboxState(LimbType limb, bool isActive)
         {
-            if (hitboxMap.TryGetValue(limb, out GameObject targetHitbox))
+            InitializeHitboxMap();
+            if (hitboxMap.TryGetValue(limb, out GameObject target) && target != null)
+                target.SetActive(isActive);
+        }
+
+        /// <summary>
+        /// Routes a hit to the active character controller on this GameObject.
+        /// </summary>
+        public void TakeHit(CombatController attacker)
+        {
+            foreach (var character in GetComponents<CharacterBase>())
             {
-                if (targetHitbox != null)
+                if (character.enabled)
                 {
-                    targetHitbox.SetActive(isActive);
+                    character.GetHit();
+                    return;
                 }
             }
         }
-        #endregion
     }
 }
