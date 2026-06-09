@@ -65,6 +65,8 @@ namespace Assets.Scripts.Player
         /// </summary>
         private void Movements()
         {
+            if (IsPlayingAction()) return;
+
             Vector3 inputDirection = cameraController.GetCameraRelativeInput();
 
             // Play animations
@@ -117,16 +119,22 @@ namespace Assets.Scripts.Player
         /// </summary>
         private void Controls()
         {
-
-
             // ==== SPRINT ====
             currentSpeed = playerInput.sprint ? speed * sprintMultiplier : speed;
 
             Vector3 inputDirection = cameraController.GetCameraRelativeInput();
 
             // Set horizontal velocity
-            velocity.x = currentSpeed * inputDirection.x; // left or right
-            velocity.z = currentSpeed * inputDirection.z; // forward or backward
+            if (CanMove)
+            {
+                velocity.x = currentSpeed * inputDirection.x; // left or right
+                velocity.z = currentSpeed * inputDirection.z; // forward or backward
+            }
+            else
+            {
+                velocity.x = 0f;
+                velocity.z = 0f;
+            }
 
             // Reset downward velocity if grounded
             if (characterController.isGrounded && velocity.y < 0)
@@ -135,14 +143,14 @@ namespace Assets.Scripts.Player
             }
 
             // ==== JUMP ====
-            if (playerInput.jump && characterController.isGrounded)
+            if (playerInput.jump && characterController.isGrounded && CanMove)
             {
                 velocity.y = Mathf.Sqrt(currentSpeed * -2f * gravity);
             }
 
             // ==== ATTACK ====
             // attack while on ground and not running
-            if (playerInput.attack && characterController.isGrounded && !playerInput.sprint)
+            if (playerInput.attack && characterController.isGrounded && !playerInput.sprint && CanMove)
             {
                 currentActionState = ActionState.Attacking;
                 PlayAnimation("jab1");
@@ -153,6 +161,32 @@ namespace Assets.Scripts.Player
 
             // Move the character
             characterController.Move(velocity * Time.deltaTime);
+        }
+
+        /// <summary>
+        /// Gets whether the player is currently allowed to move or take new inputs.
+        /// </summary>
+        private bool CanMove => currentActionState switch
+        {
+            ActionState.Attacking or ActionState.Grabbing or ActionState.Stunned => false,
+            _ => true
+        };
+
+        /// <summary>
+        /// Checks if the player is performing an action that shouldn't be interrupted.
+        /// </summary>
+        private bool IsPlayingAction()
+        {
+            if (CanMove) return false;
+
+            AnimatorStateInfo stateInfo = animator.GetCurrentAnimatorStateInfo(0);
+            bool isPlaying = stateInfo.IsName(currentAnimation) && stateInfo.normalizedTime < 1.0f;
+            bool isTransitioning = animator.IsInTransition(0) && animator.GetNextAnimatorStateInfo(0).IsName(currentAnimation);
+
+            if (isPlaying || isTransitioning) return true;
+
+            currentActionState = ActionState.Normal;
+            return false;
         }
 
         public void PlayAnimation(string newAnimation, float crossfade = 0.1f)

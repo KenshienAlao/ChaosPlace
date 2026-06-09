@@ -7,6 +7,8 @@ namespace Assets.Scripts.States
         Running,
         Jumping,
         Falling,
-        Attacking
+        Attacking,
+        Grabbing,
+        Stunned
     }
 }
