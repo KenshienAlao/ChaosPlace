@@ -49,6 +49,14 @@ namespace Assets.Scripts
         {
             Vector3 inputDirection = cameraController.GetCameraRelativeInput();
             Vector3 moveVelocity = speed * inputDirection;
+
+            // rotate towards movement direction
+            if (inputDirection != Vector3.zero)
+            {
+                Quaternion targetRotation = Quaternion.LookRotation(inputDirection);
+                transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, speed * Time.deltaTime);
+            }
+
             characterController.Move(moveVelocity * Time.deltaTime);
         }
 
