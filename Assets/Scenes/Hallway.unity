@@ -496,7 +496,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f135cefd6ae03ce7bb32a61bdb71f076, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Assets.Scripts.PlayerController
-  speed: 0
+  currentActionState: 0
+  speed: 2
   sprintMultiplier: 2
   gravity: -10
 --- !u!114 &1320375537
