@@ -5,22 +5,26 @@ namespace Assets.Scripts.Player
 {
     public class PlayerController : MonoBehaviour
     {
-        /// <summary>
-        /// Components that are required for the player controller.
-        /// </summary>
+        #region Components
+
         private CharacterController characterController;
         private PlayerInput playerInput;
         private CameraController cameraController;
-
         private Animator animator;
 
+        #endregion
+
+        #region State
+
         public ActionState currentActionState = ActionState.Normal;
-
         private string currentAnimation = "";
-
         private Vector3 velocity;
+        private float currentSpeed;
 
-        // temp
+        #endregion
+
+        #region Inspector Settings
+
         [Header("Movement Settings")]
         [Range(0, 99)]
         public float speed;
@@ -33,7 +37,9 @@ namespace Assets.Scripts.Player
         [Range(-99, 99)]
         public float gravity = -10f;
 
-        private float currentSpeed;
+        #endregion
+
+        #region Unity Callbacks
 
         /// <summary>
         /// Gets the required components for the player controller.
@@ -54,14 +60,19 @@ namespace Assets.Scripts.Player
         /// <summary>
         /// Handles the player controller every frame.
         /// </summary>
-        void Update()
+        private void Update()
         {
             Movements();
             CameraRotate();
             Controls();
         }
+
+        #endregion
+
+        #region Movement & Camera
+
         /// <summary>
-        /// Handles the player's movements.
+        /// Handles the player's movement animations.
         /// </summary>
         private void Movements()
         {
@@ -69,7 +80,6 @@ namespace Assets.Scripts.Player
 
             Vector3 inputDirection = cameraController.GetCameraRelativeInput();
 
-            // Play animations
             if (inputDirection == Vector3.zero)
             {
                 currentActionState = ActionState.Normal;
@@ -93,7 +103,7 @@ namespace Assets.Scripts.Player
         }
 
         /// <summary>
-        /// Handles the camera.
+        /// Rotates the player towards the movement direction.
         /// </summary>
         private void CameraRotate()
         {
@@ -106,7 +116,6 @@ namespace Assets.Scripts.Player
                 return;
             }
 
-            // rotate towards movement direction
             if (inputDirection != Vector3.zero)
             {
                 Quaternion targetRotation = Quaternion.LookRotation(inputDirection);
@@ -114,21 +123,24 @@ namespace Assets.Scripts.Player
             }
         }
 
+        #endregion
+
+        #region Controls
+
         /// <summary>
-        /// Handles the player's controls.
+        /// Handles the player's input controls (sprint, jump, attack) and physics.
         /// </summary>
         private void Controls()
         {
-            // ==== SPRINT ====
             currentSpeed = playerInput.sprint ? speed * sprintMultiplier : speed;
 
             Vector3 inputDirection = cameraController.GetCameraRelativeInput();
 
-            // Set horizontal velocity
+            // Horizontal velocity
             if (CanMove)
             {
-                velocity.x = currentSpeed * inputDirection.x; // left or right
-                velocity.z = currentSpeed * inputDirection.z; // forward or backward
+                velocity.x = currentSpeed * inputDirection.x;
+                velocity.z = currentSpeed * inputDirection.z;
             }
             else
             {
@@ -139,38 +151,35 @@ namespace Assets.Scripts.Player
             // Reset downward velocity if grounded
             if (characterController.isGrounded && velocity.y < 0)
             {
-                velocity.y = -2f; // downward force
+                velocity.y = -2f;
             }
 
-            // ==== JUMP ====
+            // Jump
             if (playerInput.jump && characterController.isGrounded && CanMove)
             {
                 velocity.y = Mathf.Sqrt(currentSpeed * -2f * gravity);
             }
 
-            // ==== ATTACK ====
-            // attack while on ground and not running
+            // Attack
             if (playerInput.attack && characterController.isGrounded && !playerInput.sprint && CanMove)
             {
                 currentActionState = ActionState.Attacking;
                 PlayAnimation("jab1");
             }
 
-            // Apply gravity
-            velocity.y += gravity * Time.deltaTime; // up or down
+            // Gravity
+            velocity.y += gravity * Time.deltaTime;
 
-            // Move the character
+            // Move
             characterController.Move(velocity * Time.deltaTime);
         }
 
+        #endregion
 
-
-        // ======================================
-        // HELPERS
-        // ======================================
+        #region Helpers
 
         /// <summary>
-        /// Gets whether the player is currently allowed to move or take new inputs.
+        /// Whether the player is allowed to move or take new inputs.
         /// </summary>
         private bool CanMove => currentActionState switch
         {
@@ -179,7 +188,8 @@ namespace Assets.Scripts.Player
         };
 
         /// <summary>
-        /// Checks if the player is performing an action that shouldn't be interrupted.
+        /// Returns true if the player is performing an action that should not be interrupted.
+        /// Automatically resets the state when the animation finishes.
         /// </summary>
         private bool IsPlayingAction()
         {
@@ -195,6 +205,13 @@ namespace Assets.Scripts.Player
             return false;
         }
 
+        #endregion
+
+        #region Animation
+
+        /// <summary>
+        /// Plays an animation with crossfade. Skips if the same animation is already playing.
+        /// </summary>
         public void PlayAnimation(string newAnimation, float crossfade = 0.1f)
         {
             if (currentAnimation == newAnimation) return;
@@ -203,15 +220,23 @@ namespace Assets.Scripts.Player
             currentAnimation = newAnimation;
         }
 
+        /// <summary>
+        /// Forces an animation to play from the start, even if it's already playing.
+        /// </summary>
         public void ForcePlayAnimation(string newAnimation, float crossfade = 0.05f)
         {
             animator.CrossFade(newAnimation, crossfade, 0, 0f);
             currentAnimation = newAnimation;
         }
 
+        /// <summary>
+        /// Resets the current animation tracker, allowing any animation to be played next.
+        /// </summary>
         public void ResetCurrentAnimation()
         {
             currentAnimation = "";
         }
+
+        #endregion
     }
 }
