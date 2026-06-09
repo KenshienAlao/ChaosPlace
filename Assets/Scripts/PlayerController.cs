@@ -15,6 +15,8 @@ namespace Assets.Scripts
 
         private string currentAnimation = "";
 
+        private Vector3 velocity;
+
         // temp
         [Header("Movement Settings")]
         [Range(0, 99)]
@@ -23,6 +25,10 @@ namespace Assets.Scripts
         [Header("Sprint Settings")]
         [Range(1, 5)]
         public float sprintMultiplier = 2f;
+
+        [Header("Gravity")]
+        [Range(-99, 99)]
+        public float gravity = -10f;
 
         private float currentSpeed;
 
@@ -41,9 +47,6 @@ namespace Assets.Scripts
             if (cameraController == null) Debug.LogError("CameraController component not found on Main Camera.");
             if (animator == null) Debug.LogError("Animator component not found on this GameObject.");
         }
-        private void Start()
-        {
-        }
 
         /// <summary>
         /// Handles the player controller every frame.
@@ -61,12 +64,15 @@ namespace Assets.Scripts
         private void Movements()
         {
             Vector3 inputDirection = cameraController.GetCameraRelativeInput();
-            Vector3 moveVelocity = currentSpeed * inputDirection;
-            characterController.Move(moveVelocity * Time.deltaTime);
 
+            // Play animations
             if (inputDirection == Vector3.zero)
             {
                 PlayAnimation("idle");
+            }
+            else if (!characterController.isGrounded)
+            {
+                PlayAnimation("jump");
             }
             else if (playerInput.sprint)
             {
@@ -107,6 +113,30 @@ namespace Assets.Scripts
         {
             // sprint
             currentSpeed = playerInput.sprint ? speed * sprintMultiplier : speed;
+
+            Vector3 inputDirection = cameraController.GetCameraRelativeInput();
+
+            // Set horizontal velocity
+            velocity.x = currentSpeed * inputDirection.x; // left or right
+            velocity.z = currentSpeed * inputDirection.z; // forward or backward
+
+            // Reset downward velocity if grounded
+            if (characterController.isGrounded && velocity.y < 0)
+            {
+                velocity.y = -2f; // downward force
+            }
+            // jump
+            if (playerInput.jump && characterController.isGrounded)
+            {
+                velocity.y = Mathf.Sqrt(currentSpeed * -2f * gravity);
+                Debug.Log("Jump");
+            }
+
+            // Apply gravity
+            velocity.y += gravity * Time.deltaTime; // up or down
+
+            // Move the character
+            characterController.Move(velocity * Time.deltaTime);
         }
 
         public void PlayAnimation(string newAnimation, float crossfade = 0.1f)
