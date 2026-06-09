@@ -60,7 +60,6 @@ namespace Assets.Scripts.Player
             CameraRotate();
             Controls();
         }
-
         /// <summary>
         /// Handles the player's movements.
         /// </summary>
@@ -71,18 +70,22 @@ namespace Assets.Scripts.Player
             // Play animations
             if (inputDirection == Vector3.zero)
             {
+                currentActionState = ActionState.Normal;
                 PlayAnimation("idle");
             }
             else if (!characterController.isGrounded)
             {
+                currentActionState = ActionState.Jumping;
                 PlayAnimation("jump");
             }
             else if (playerInput.sprint)
             {
+                currentActionState = ActionState.Running;
                 PlayAnimation("run");
             }
             else
             {
+                currentActionState = ActionState.Walking;
                 PlayAnimation("walk");
             }
         }
@@ -141,7 +144,8 @@ namespace Assets.Scripts.Player
             // attack while on ground and not running
             if (playerInput.attack && characterController.isGrounded && !playerInput.sprint)
             {
-                ForcePlayAnimation("jab1");
+                currentActionState = ActionState.Attacking;
+                PlayAnimation("jab1");
             }
 
             // Apply gravity

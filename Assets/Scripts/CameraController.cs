@@ -29,8 +29,6 @@ namespace Assets.Scripts
                 if (player != null)
                 {
                     target = player.transform;
-                    playerInput = GetComponent<PlayerInput>();
-                    return;
                 }
                 else
                 {
@@ -39,6 +37,10 @@ namespace Assets.Scripts
                 }
             }
 
+            if (target != null)
+            {
+                playerInput = target.GetComponent<PlayerInput>();
+            }
         }
 
         void LateUpdate()
@@ -59,6 +61,28 @@ namespace Assets.Scripts
 
         public Vector3 GetCameraRelativeInput()
         {
+            if (playerInput == null)
+            {
+                if (target != null)
+                {
+                    playerInput = target.GetComponent<PlayerInput>();
+                }
+                else
+                {
+                    GameObject player = GameObject.FindGameObjectWithTag("Player");
+                    if (player != null)
+                    {
+                        target = player.transform;
+                        playerInput = target.GetComponent<PlayerInput>();
+                    }
+                }
+            }
+
+            if (playerInput == null)
+            {
+                return Vector3.zero;
+            }
+
             if (playerInput.moveInput.sqrMagnitude <= 0.01f) return Vector3.zero;
 
             Transform cam = Camera.main.transform;
