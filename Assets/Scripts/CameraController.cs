@@ -1,0 +1,66 @@
+using Assets.Settings;
+using UnityEngine;
+
+namespace Assets.Scripts
+{
+    public class CameraController : MonoBehaviour
+    {
+        private PlayerInput playerInput;
+        public CameraSettings cameraSettings;
+        private Transform target;
+
+        void Start()
+        {
+            if (target == null)
+            {
+                GameObject player = GameObject.FindGameObjectWithTag("Player");
+                if (player != null)
+                {
+                    target = player.transform;
+                    playerInput = player.GetComponent<PlayerInput>();
+                    return;
+                }
+                else
+                {
+                    Debug.LogError("Player is not found or put the Tag \"Player\" in the player.");
+                    return;
+                }
+            }
+
+
+
+        }
+        void LateUpdate()
+        {
+            if (target == null) return;
+
+            // Apply the offset relative to the target's rotation so the camera sweeps behind the player
+            Vector3 desiredPosition = target.position + (target.rotation * cameraSettings.offset);
+            transform.position = Vector3.SmoothDamp(transform.position, desiredPosition, ref cameraSettings.currentVelocity, cameraSettings.smoothTime);
+
+            // Smoothly rotate the camera to look toward the player and in their walking direction
+            Vector3 lookTarget = target.position + (Vector3.up * (cameraSettings.offset.y * 0.5f));
+            Vector3 lookDirection = lookTarget - transform.position;
+            if (lookDirection != Vector3.zero)
+            {
+                Quaternion targetRotation = Quaternion.LookRotation(lookDirection);
+                transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, cameraSettings.rotationSmoothSpeed * Time.deltaTime);
+            }
+        }
+
+        public Vector3 GetCameraRelativeInput()
+        {
+            if (playerInput.moveInput.sqrMagnitude <= 0.01f) return Vector3.zero;
+
+            Transform cam = UnityEngine.Camera.main.transform;
+
+            // ignore vertical tilt
+            Vector3 forward = new Vector3(cam.forward.x, 0f, cam.forward.z).normalized;
+            Vector3 right = new Vector3(cam.right.x, 0f, cam.right.z).normalized;
+
+            return ((forward * playerInput.moveInput.y) + (right * playerInput.moveInput.x)).normalized;
+        }
+
+    }
+
+}
