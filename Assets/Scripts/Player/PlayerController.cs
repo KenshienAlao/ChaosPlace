@@ -68,7 +68,7 @@ namespace Assets.Scripts.Player
 
         #endregion
 
-        #region Movement & Actions
+        #region Controls
 
         /// <summary>
         /// Handles player movement, actions (like attacks), and locomotion animations.
