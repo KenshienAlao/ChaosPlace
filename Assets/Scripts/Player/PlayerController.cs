@@ -62,44 +62,98 @@ namespace Assets.Scripts.Player
         /// </summary>
         private void Update()
         {
-            Movements();
+            HandleMovementAndActions();
             CameraRotate();
-            Controls();
         }
 
         #endregion
 
-        #region Movement & Camera
+        #region Movement & Actions
 
         /// <summary>
-        /// Handles the player's movement animations.
+        /// Handles player movement, actions (like attacks), and locomotion animations.
         /// </summary>
-        private void Movements()
+        private void HandleMovementAndActions()
         {
-            if (IsPlayingAction()) return;
-
-            Vector3 inputDirection = cameraController.GetCameraRelativeInput();
-
-            if (inputDirection == Vector3.zero)
+            // Check if the current action has completed
+            if (!CanMove)
             {
-                currentActionState = ActionState.Normal;
-                PlayAnimation("idle");
+                AnimatorStateInfo stateInfo = animator.GetCurrentAnimatorStateInfo(0);
+                if (stateInfo.IsName(currentAnimation) && stateInfo.normalizedTime >= 1.0f && !animator.IsInTransition(0))
+                {
+                    currentActionState = ActionState.Normal;
+                }
             }
-            else if (!characterController.isGrounded)
+
+            // Process Action Inputs
+            if (CanMove && characterController.isGrounded)
             {
-                currentActionState = ActionState.Jumping;
-                PlayAnimation("jump");
+                if (playerInput.attack && !playerInput.sprint)
+                {
+                    currentActionState = ActionState.Attacking;
+                    PlayAnimation("jab1");
+                }
             }
-            else if (playerInput.sprint)
+
+            // Process Locomotion Animations
+            if (CanMove)
             {
-                currentActionState = ActionState.Running;
-                PlayAnimation("run");
+                Vector3 inputDirection = cameraController.GetCameraRelativeInput();
+
+                if (!characterController.isGrounded)
+                {
+                    currentActionState = ActionState.Jumping;
+                    PlayAnimation("jump");
+                }
+                else if (inputDirection == Vector3.zero)
+                {
+                    currentActionState = ActionState.Normal;
+                    PlayAnimation("idle");
+                }
+                else if (playerInput.sprint)
+                {
+                    currentActionState = ActionState.Running;
+                    PlayAnimation("run");
+                }
+                else
+                {
+                    currentActionState = ActionState.Walking;
+                    PlayAnimation("walk");
+                }
+            }
+
+            // Calculate Physics & Movement
+            currentSpeed = playerInput.sprint ? speed * sprintMultiplier : speed;
+            Vector3 movementInput = cameraController.GetCameraRelativeInput();
+
+            if (CanMove)
+            {
+                velocity.x = currentSpeed * movementInput.x;
+                velocity.z = currentSpeed * movementInput.z;
             }
             else
             {
-                currentActionState = ActionState.Walking;
-                PlayAnimation("walk");
+                velocity.x = 0f;
+                velocity.z = 0f;
             }
+
+            // Reset downward velocity if grounded
+            if (characterController.isGrounded && velocity.y < 0)
+            {
+                velocity.y = -2f;
+            }
+
+            // Jump
+            if (playerInput.jump && characterController.isGrounded && CanMove)
+            {
+                velocity.y = Mathf.Sqrt(currentSpeed * -2f * gravity);
+            }
+
+            // Gravity
+            velocity.y += gravity * Time.deltaTime;
+
+            // Move character controller
+            characterController.Move(velocity * Time.deltaTime);
         }
 
         /// <summary>
@@ -125,57 +179,6 @@ namespace Assets.Scripts.Player
 
         #endregion
 
-        #region Controls
-
-        /// <summary>
-        /// Handles the player's input controls (sprint, jump, attack) and physics.
-        /// </summary>
-        private void Controls()
-        {
-            currentSpeed = playerInput.sprint ? speed * sprintMultiplier : speed;
-
-            Vector3 inputDirection = cameraController.GetCameraRelativeInput();
-
-            // Horizontal velocity
-            if (CanMove)
-            {
-                velocity.x = currentSpeed * inputDirection.x;
-                velocity.z = currentSpeed * inputDirection.z;
-            }
-            else
-            {
-                velocity.x = 0f;
-                velocity.z = 0f;
-            }
-
-            // Reset downward velocity if grounded
-            if (characterController.isGrounded && velocity.y < 0)
-            {
-                velocity.y = -2f;
-            }
-
-            // Jump
-            if (playerInput.jump && characterController.isGrounded && CanMove)
-            {
-                velocity.y = Mathf.Sqrt(currentSpeed * -2f * gravity);
-            }
-
-            // Attack
-            if (playerInput.attack && characterController.isGrounded && !playerInput.sprint && CanMove)
-            {
-                currentActionState = ActionState.Attacking;
-                PlayAnimation("jab1");
-            }
-
-            // Gravity
-            velocity.y += gravity * Time.deltaTime;
-
-            // Move
-            characterController.Move(velocity * Time.deltaTime);
-        }
-
-        #endregion
-
         #region Helpers
 
         /// <summary>
@@ -186,24 +189,6 @@ namespace Assets.Scripts.Player
             ActionState.Attacking or ActionState.Grabbing or ActionState.Stunned => false,
             _ => true
         };
-
-        /// <summary>
-        /// Returns true if the player is performing an action that should not be interrupted.
-        /// Automatically resets the state when the animation finishes.
-        /// </summary>
-        private bool IsPlayingAction()
-        {
-            if (CanMove) return false;
-
-            AnimatorStateInfo stateInfo = animator.GetCurrentAnimatorStateInfo(0);
-            bool isPlaying = stateInfo.IsName(currentAnimation) && stateInfo.normalizedTime < 1.0f;
-            bool isTransitioning = animator.IsInTransition(0) && animator.GetNextAnimatorStateInfo(0).IsName(currentAnimation);
-
-            if (isPlaying || isTransitioning) return true;
-
-            currentActionState = ActionState.Normal;
-            return false;
-        }
 
         #endregion
 
@@ -216,7 +201,7 @@ namespace Assets.Scripts.Player
         {
             if (currentAnimation == newAnimation) return;
 
-            animator.CrossFade(newAnimation, crossfade);
+            animator.CrossFadeInFixedTime(newAnimation, crossfade);
             currentAnimation = newAnimation;
         }
 
@@ -225,7 +210,7 @@ namespace Assets.Scripts.Player
         /// </summary>
         public void ForcePlayAnimation(string newAnimation, float crossfade = 0.05f)
         {
-            animator.CrossFade(newAnimation, crossfade, 0, 0f);
+            animator.CrossFadeInFixedTime(newAnimation, crossfade, 0, 0f);
             currentAnimation = newAnimation;
         }
 
