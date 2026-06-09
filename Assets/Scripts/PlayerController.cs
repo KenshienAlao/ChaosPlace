@@ -16,6 +16,12 @@ namespace Assets.Scripts
         [Range(0, 99)]
         public float speed;
 
+        [Header("Sprint Settings")]
+        [Range(1, 5)]
+        public float sprintMultiplier = 2f;
+
+        private float currentSpeed;
+
         /// <summary>
         /// Gets the required components for the player controller.
         /// </summary>
@@ -40,6 +46,7 @@ namespace Assets.Scripts
         {
             Movements();
             CameraRotate();
+            Controls();
         }
 
         /// <summary>
@@ -48,7 +55,7 @@ namespace Assets.Scripts
         private void Movements()
         {
             Vector3 inputDirection = cameraController.GetCameraRelativeInput();
-            Vector3 moveVelocity = speed * inputDirection;
+            Vector3 moveVelocity = currentSpeed * inputDirection;
             characterController.Move(moveVelocity * Time.deltaTime);
         }
 
@@ -72,6 +79,15 @@ namespace Assets.Scripts
                 Quaternion targetRotation = Quaternion.LookRotation(inputDirection);
                 transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, speed * Time.deltaTime);
             }
+        }
+
+        /// <summary>
+        /// Handles the player's controls.
+        /// </summary>
+        private void Controls()
+        {
+            // sprint
+            currentSpeed = playerInput.sprint ? speed * sprintMultiplier : speed;
         }
     }
 }
