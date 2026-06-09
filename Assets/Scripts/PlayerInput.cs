@@ -5,10 +5,24 @@ namespace Assets.Scripts
 {
     public class PlayerInput : MonoBehaviour
     {
+        /// <summary>
+        /// Gets the movement input from the player.
+        /// </summary>
         [HideInInspector] public Vector2 moveInput;
+
+        /// <summary>
+        /// Gets the jump input from the player.
+        /// </summary>
         [HideInInspector] public bool jump;
+
+        /// <summary>
+        /// Gets the sprint input from the player.
+        /// </summary>
         [HideInInspector] public bool sprint;
 
+        /// <summary>
+        /// Gets the attack input from the player.
+        /// </summary>
         [HideInInspector] public bool attack;
 
         private Keyboard keyboard;
@@ -23,7 +37,6 @@ namespace Assets.Scripts
             keyboard = Keyboard.current;
             Gamepad gamepad = Gamepad.current;
 
-            // Movement input
             float horizontal = 0;
             float vertical = 0;
 
@@ -42,18 +55,14 @@ namespace Assets.Scripts
                 vertical += leftStick.y;
             }
 
-            // Combine inputs and ensure magnitude doesn't exceed 1
             moveInput = new Vector2(horizontal, vertical);
             if (moveInput.magnitude > 1f)
             {
                 moveInput.Normalize();
             }
 
-            // Jump input
             jump = (keyboard?.spaceKey.wasPressedThisFrame is true) ||
                           (gamepad?.buttonSouth.wasPressedThisFrame is true);
-
-            // Sprint input
             sprint = (keyboard?.leftShiftKey.isPressed is true) ||
                            (gamepad?.rightTrigger.isPressed is true);
 
