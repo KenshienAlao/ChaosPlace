@@ -1402,6 +1402,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: f20ff6643b86cb7ddbfc32d6a7e1aef0, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1320375537}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: f20ff6643b86cb7ddbfc32d6a7e1aef0, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1320375539}
     - targetCorrespondingSourceObject: {fileID: 1664083765829960058, guid: f20ff6643b86cb7ddbfc32d6a7e1aef0, type: 3}
       insertIndex: -1
       addedObject: {fileID: 941368178}
@@ -1515,7 +1518,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f135cefd6ae03ce7bb32a61bdb71f076, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Assets.Scripts.PlayerController
-  strikeHitbox: {fileID: 0}
   currentActionState: 0
   speed: 2
   sprintMultiplier: 2
@@ -1541,6 +1543,18 @@ Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: f20ff6643b86cb7ddbfc32d6a7e1aef0, type: 3}
   m_PrefabInstance: {fileID: 1320375531}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1320375539
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1320375532}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cf86019ad19679c17aa147b7505b86c0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Assets.Scripts.CombatController
 --- !u!1 &1360599250 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: -7143064857610932893, guid: f20ff6643b86cb7ddbfc32d6a7e1aef0, type: 3}
@@ -1879,7 +1893,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 01a640ef822be2e3498eabeaaf5fee6b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
-  target: {fileID: 0}
+  target: {fileID: 1320375538}
   cameraSettings:
     offset: {x: 0, y: 1.5, z: -3}
     smoothTime: 1

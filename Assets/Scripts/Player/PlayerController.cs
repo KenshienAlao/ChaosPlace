@@ -3,6 +3,15 @@ using UnityEngine;
 
 namespace Assets.Scripts.Player
 {
+    #region Required Components
+
+    [RequireComponent(typeof(CharacterController))]
+    [RequireComponent(typeof(PlayerInput))]
+    [RequireComponent(typeof(Animator))]
+    [RequireComponent(typeof(CombatController))]
+
+    #endregion
+
     public class PlayerController : MonoBehaviour
     {
         #region Components
@@ -11,9 +20,7 @@ namespace Assets.Scripts.Player
         private PlayerInput playerInput;
         private CameraController cameraController;
         private Animator animator;
-
-        [Header("Hitbox Strike Zone")]
-        [SerializeField] private GameObject strikeHitbox;
+        private CombatController combatController;
 
         #endregion
 
@@ -52,6 +59,7 @@ namespace Assets.Scripts.Player
             characterController = VerifyReferenceComponent<CharacterController>(gameObject);
             playerInput = VerifyReferenceComponent<PlayerInput>(gameObject);
             animator = VerifyReferenceComponent<Animator>(gameObject);
+            combatController = VerifyReferenceComponent<CombatController>(gameObject);
             cameraController = VerifyReferenceComponent<CameraController>(Camera.main.gameObject);
         }
 
@@ -173,15 +181,6 @@ namespace Assets.Scripts.Player
                 Quaternion targetRotation = Quaternion.LookRotation(inputDirection);
                 transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, speed * Time.deltaTime);
             }
-        }
-
-        #endregion
-
-        #region Combat
-
-        private void Combat()
-        {
-
         }
 
         #endregion
