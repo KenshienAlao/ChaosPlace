@@ -1555,6 +1555,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cf86019ad19679c17aa147b7505b86c0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Assets.Scripts.CombatController
+  HandLeft: {fileID: 328222671}
+  HandRight: {fileID: 356743779}
+  LegLeft: {fileID: 1582254809}
+  LegRight: {fileID: 22442665}
 --- !u!1 &1360599250 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: -7143064857610932893, guid: f20ff6643b86cb7ddbfc32d6a7e1aef0, type: 3}

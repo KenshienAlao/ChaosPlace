@@ -13,18 +13,18 @@ namespace Assets.Scripts
         #endregion
 
         #region Inspector
-        /// <summary>
-        /// Array to store hitbox references.
-        /// </summary>
-        [Header("Animation References")]
-        [SerializeField] private GameObject[] hitboxes = new GameObject[4];
+        [Header("Hitbox References")]
+        [SerializeField] private GameObject HandLeft;
+        [SerializeField] private GameObject HandRight;
+        [SerializeField] private GameObject LegLeft;
+        [SerializeField] private GameObject LegRight;
         #endregion
 
         #region References
         /// <summary>
         /// Dictionary to store hitbox references.
         /// </summary>
-        private Dictionary<LimbType, GameObject> hitboxMap = new Dictionary<LimbType, GameObject>();
+        private Dictionary<LimbType, GameObject> hitboxMap;
         #endregion
 
         #region Unity Callbacks
@@ -33,15 +33,15 @@ namespace Assets.Scripts
         /// </summary>
         private void Awake()
         {
-            /// <summary>
-            /// Cache hitboxes for fast access.
-            /// </summary>
-            hitboxMap.Add(LimbType.HandL, hitboxes[0]);
-            hitboxMap.Add(LimbType.HandR, hitboxes[1]);
-            hitboxMap.Add(LimbType.LegL, hitboxes[2]);
-            hitboxMap.Add(LimbType.LegR, hitboxes[3]);
+            hitboxMap = new Dictionary<LimbType, GameObject>
+            {
+                { LimbType.HandL, HandLeft },
+                { LimbType.HandR, HandRight },
+                { LimbType.LegL, LegLeft },
+                { LimbType.LegR, LegRight }
+            };
 
-            foreach (var hitbox in hitboxes)
+            foreach (var hitbox in hitboxMap.Values)
             {
                 if (hitbox != null) hitbox.SetActive(false);
             }
