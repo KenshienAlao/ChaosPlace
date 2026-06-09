@@ -1,3 +1,4 @@
+using Assets.Scripts.Player;
 using Assets.Settings;
 using UnityEngine;
 
@@ -28,7 +29,7 @@ namespace Assets.Scripts
                 if (player != null)
                 {
                     target = player.transform;
-                    playerInput = player.GetComponent<PlayerInput>();
+                    playerInput = GetComponent<PlayerInput>();
                     return;
                 }
                 else
