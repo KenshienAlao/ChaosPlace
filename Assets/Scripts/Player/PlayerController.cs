@@ -1,3 +1,4 @@
+using Assets.Scripts.States;
 using UnityEngine;
 
 namespace Assets.Scripts.Player
@@ -12,6 +13,8 @@ namespace Assets.Scripts.Player
         private CameraController cameraController;
 
         private Animator animator;
+
+        public ActionState currentActionState = ActionState.Normal;
 
         private string currentAnimation = "";
 
