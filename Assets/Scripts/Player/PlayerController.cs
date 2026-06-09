@@ -163,6 +163,12 @@ namespace Assets.Scripts.Player
             characterController.Move(velocity * Time.deltaTime);
         }
 
+
+
+        // ======================================
+        // HELPERS
+        // ======================================
+
         /// <summary>
         /// Gets whether the player is currently allowed to move or take new inputs.
         /// </summary>
