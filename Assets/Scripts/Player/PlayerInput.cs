@@ -5,52 +5,75 @@ namespace Assets.Scripts.Player
 {
     public class PlayerInput : MonoBehaviour
     {
+        #region Input State
+
         /// <summary>
-        /// Gets the movement input from the player.
+        /// Current movement input (WASD / left stick).
         /// </summary>
         [HideInInspector] public Vector2 moveInput;
 
         /// <summary>
-        /// Gets the jump input from the player.
+        /// True on the frame the player presses jump.
         /// </summary>
         [HideInInspector] public bool jump;
 
         /// <summary>
-        /// Gets the sprint input from the player.
+        /// True while the player holds sprint.
         /// </summary>
         [HideInInspector] public bool sprint;
 
         /// <summary>
-        /// Gets the attack input from the player.
+        /// True on the frame the player presses attack.
         /// </summary>
         [HideInInspector] public bool attack;
 
+        #endregion
+
+        #region Private
+
         private Keyboard keyboard;
 
-        void Start()
+        #endregion
+
+        #region Unity Callbacks
+
+        private void Start()
         {
             keyboard = Keyboard.current;
         }
 
-        void Update()
+        private void Update()
         {
             keyboard = Keyboard.current;
             Gamepad gamepad = Gamepad.current;
 
-            float horizontal = 0;
-            float vertical = 0;
+            ReadMovement(keyboard, gamepad);
+            ReadActions(keyboard, gamepad);
+        }
 
-            if (keyboard != null)
+        #endregion
+
+        #region Input Reading
+
+        /// <summary>
+        /// Reads directional movement from keyboard and gamepad.
+        /// </summary>
+        private void ReadMovement(Keyboard kb, Gamepad gp)
+        {
+            float horizontal = 0f;
+            float vertical = 0f;
+
+            if (kb != null)
             {
-                if (keyboard.wKey.isPressed || keyboard.upArrowKey.isPressed) vertical++;
-                if (keyboard.sKey.isPressed || keyboard.downArrowKey.isPressed) vertical--;
-                if (keyboard.dKey.isPressed || keyboard.rightArrowKey.isPressed) horizontal++;
-                if (keyboard.aKey.isPressed || keyboard.leftArrowKey.isPressed) horizontal--;
+                if (kb.wKey.isPressed || kb.upArrowKey.isPressed) vertical++;
+                if (kb.sKey.isPressed || kb.downArrowKey.isPressed) vertical--;
+                if (kb.dKey.isPressed || kb.rightArrowKey.isPressed) horizontal++;
+                if (kb.aKey.isPressed || kb.leftArrowKey.isPressed) horizontal--;
             }
 
-            if (gamepad != null)
+            if (gp != null)
             {
-                Vector2 leftStick = gamepad.leftStick.ReadValue();
+                Vector2 leftStick = gp.leftStick.ReadValue();
                 horizontal += leftStick.x;
                 vertical += leftStick.y;
             }
@@ -60,14 +83,23 @@ namespace Assets.Scripts.Player
             {
                 moveInput.Normalize();
             }
-
-            jump = (keyboard?.spaceKey.wasPressedThisFrame is true) ||
-                          (gamepad?.buttonSouth.wasPressedThisFrame is true);
-            sprint = (keyboard?.leftShiftKey.isPressed is true) ||
-                           (gamepad?.rightTrigger.isPressed is true);
-
-            attack = (keyboard?.qKey.wasPressedThisFrame is true) ||
-                     (gamepad?.buttonWest.wasPressedThisFrame is true);
         }
+
+        /// <summary>
+        /// Reads action inputs (jump, sprint, attack) from keyboard and gamepad.
+        /// </summary>
+        private void ReadActions(Keyboard kb, Gamepad gp)
+        {
+            jump = (kb?.spaceKey.wasPressedThisFrame is true) ||
+                   (gp?.buttonSouth.wasPressedThisFrame is true);
+
+            sprint = (kb?.leftShiftKey.isPressed is true) ||
+                     (gp?.rightTrigger.isPressed is true);
+
+            attack = (kb?.qKey.wasPressedThisFrame is true) ||
+                     (gp?.buttonWest.wasPressedThisFrame is true);
+        }
+
+        #endregion
     }
 }

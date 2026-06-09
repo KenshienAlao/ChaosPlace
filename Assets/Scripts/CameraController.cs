@@ -6,22 +6,28 @@ namespace Assets.Scripts
 {
     public class CameraController : MonoBehaviour
     {
-        /// <summary>
-        /// Gets the player input from the player.
-        /// </summary>
+        #region References
+
         private PlayerInput playerInput;
+        private Transform target;
+
+        #endregion
+
+        #region Inspector Settings
 
         /// <summary>
-        /// Gets the camera settings from the player.
+        /// Camera behavior settings (offset, smoothing, rotation).
         /// </summary>
         public CameraSettings cameraSettings;
 
-        /// <summary>
-        /// Gets the target from the player.
-        /// </summary>
-        private Transform target;
+        #endregion
 
-        void Start()
+        #region Unity Callbacks
+
+        /// <summary>
+        /// Finds the player and caches required references.
+        /// </summary>
+        private void Start()
         {
             if (target == null)
             {
@@ -43,7 +49,10 @@ namespace Assets.Scripts
             }
         }
 
-        void LateUpdate()
+        /// <summary>
+        /// Follows and looks at the player after all Update calls.
+        /// </summary>
+        private void LateUpdate()
         {
             if (target == null) return;
 
@@ -59,30 +68,21 @@ namespace Assets.Scripts
             }
         }
 
+        #endregion
+
+        #region Public Methods
+
+        /// <summary>
+        /// Returns the player's movement input relative to the camera's facing direction.
+        /// </summary>
         public Vector3 GetCameraRelativeInput()
         {
             if (playerInput == null)
             {
-                if (target != null)
-                {
-                    playerInput = target.GetComponent<PlayerInput>();
-                }
-                else
-                {
-                    GameObject player = GameObject.FindGameObjectWithTag("Player");
-                    if (player != null)
-                    {
-                        target = player.transform;
-                        playerInput = target.GetComponent<PlayerInput>();
-                    }
-                }
+                TryResolvePlayerInput();
             }
 
-            if (playerInput == null)
-            {
-                return Vector3.zero;
-            }
-
+            if (playerInput == null) return Vector3.zero;
             if (playerInput.moveInput.sqrMagnitude <= 0.01f) return Vector3.zero;
 
             Transform cam = Camera.main.transform;
@@ -92,6 +92,29 @@ namespace Assets.Scripts
             return ((forward * playerInput.moveInput.y) + (right * playerInput.moveInput.x)).normalized;
         }
 
-    }
+        #endregion
 
+        #region Helpers
+
+        /// <summary>
+        /// Attempts to find and cache the PlayerInput component from the player.
+        /// </summary>
+        private void TryResolvePlayerInput()
+        {
+            if (target != null)
+            {
+                playerInput = target.GetComponent<PlayerInput>();
+                return;
+            }
+
+            GameObject player = GameObject.FindGameObjectWithTag("Player");
+            if (player != null)
+            {
+                target = player.transform;
+                playerInput = target.GetComponent<PlayerInput>();
+            }
+        }
+
+        #endregion
+    }
 }
