@@ -111,7 +111,9 @@ namespace Assets.Scripts
         /// </summary>
         private void Controls()
         {
-            // sprint
+
+
+            // ==== SPRINT ====
             currentSpeed = playerInput.sprint ? speed * sprintMultiplier : speed;
 
             Vector3 inputDirection = cameraController.GetCameraRelativeInput();
@@ -125,11 +127,18 @@ namespace Assets.Scripts
             {
                 velocity.y = -2f; // downward force
             }
-            // jump
+
+            // ==== JUMP ====
             if (playerInput.jump && characterController.isGrounded)
             {
                 velocity.y = Mathf.Sqrt(currentSpeed * -2f * gravity);
-                Debug.Log("Jump");
+            }
+
+            // ==== ATTACK ====
+            // attack while on ground and not running
+            if (playerInput.attack && characterController.isGrounded && !playerInput.sprint)
+            {
+                ForcePlayAnimation("jab1");
             }
 
             // Apply gravity
