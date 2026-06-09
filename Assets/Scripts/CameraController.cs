@@ -7,17 +7,18 @@ namespace Assets.Scripts
     public class CameraController : MonoBehaviour
     {
         #region References
-
         private PlayerInput playerInput;
-        private Transform target;
-
         #endregion
 
         #region Inspector Settings
 
+        [Header("Target Tracking")]
+        [SerializeField] private Transform target;
+
         /// <summary>
         /// Camera behavior settings (offset, smoothing, rotation).
         /// </summary>
+        [Header("Settings")]
         public CameraSettings cameraSettings;
 
         #endregion
@@ -25,28 +26,11 @@ namespace Assets.Scripts
         #region Unity Callbacks
 
         /// <summary>
-        /// Finds the player and caches required references.
+        /// Caches references from the dragged target.
         /// </summary>
         private void Start()
         {
-            if (target == null)
-            {
-                GameObject player = GameObject.FindGameObjectWithTag("Player");
-                if (player != null)
-                {
-                    target = player.transform;
-                }
-                else
-                {
-                    Debug.LogError("Player is not found or put the Tag \"Player\" in the player.");
-                    return;
-                }
-            }
-
-            if (target != null)
-            {
-                playerInput = target.GetComponent<PlayerInput>();
-            }
+            ResolveTargetReferences();
         }
 
         /// <summary>
@@ -77,11 +61,7 @@ namespace Assets.Scripts
         /// </summary>
         public Vector3 GetCameraRelativeInput()
         {
-            if (playerInput == null)
-            {
-                TryResolvePlayerInput();
-            }
-
+            // If there's no target or no input setup, give back a zero direction safely
             if (playerInput == null) return Vector3.zero;
             if (playerInput.moveInput.sqrMagnitude <= 0.01f) return Vector3.zero;
 
@@ -92,26 +72,37 @@ namespace Assets.Scripts
             return ((forward * playerInput.moveInput.y) + (right * playerInput.moveInput.x)).normalized;
         }
 
+        /// <summary>
+        /// Public method allowing character selection / dynamic spawn managers 
+        /// to hand a newly spawned character over to the camera instantly.
+        /// </summary>
+        public void SetNewTarget(Transform newTarget)
+        {
+            target = newTarget;
+            ResolveTargetReferences();
+        }
+
         #endregion
 
         #region Helpers
 
         /// <summary>
-        /// Attempts to find and cache the PlayerInput component from the player.
+        /// Validates the target and safely extracts necessary components once.
         /// </summary>
-        private void TryResolvePlayerInput()
+        private void ResolveTargetReferences()
         {
             if (target != null)
             {
                 playerInput = target.GetComponent<PlayerInput>();
-                return;
-            }
 
-            GameObject player = GameObject.FindGameObjectWithTag("Player");
-            if (player != null)
+                if (playerInput == null)
+                {
+                    Debug.LogWarning($"[{gameObject.name}] Assigned target '{target.name}' is missing a PlayerInput component!");
+                }
+            }
+            else
             {
-                target = player.transform;
-                playerInput = target.GetComponent<PlayerInput>();
+                Debug.LogError($"[{gameObject.name}] Target is missing! Please drag a character into the 'Target' inspector slot.", this);
             }
         }
 

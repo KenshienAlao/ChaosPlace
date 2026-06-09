@@ -12,6 +12,9 @@ namespace Assets.Scripts.Player
         private CameraController cameraController;
         private Animator animator;
 
+        [Header("Hitbox Strike Zone")]
+        [SerializeField] private GameObject strikeHitbox;
+
         #endregion
 
         #region State
@@ -46,15 +49,10 @@ namespace Assets.Scripts.Player
         /// </summary>
         private void Awake()
         {
-            characterController = GetComponent<CharacterController>();
-            playerInput = GetComponent<PlayerInput>();
-            cameraController = Camera.main.GetComponent<CameraController>();
-            animator = GetComponent<Animator>();
-
-            if (characterController == null) Debug.LogError("CharacterController component not found on this GameObject.");
-            if (playerInput == null) Debug.LogError("PlayerInput component not found on this GameObject.");
-            if (cameraController == null) Debug.LogError("CameraController component not found on Main Camera.");
-            if (animator == null) Debug.LogError("Animator component not found on this GameObject.");
+            characterController = VerifyReferenceComponent<CharacterController>(gameObject);
+            playerInput = VerifyReferenceComponent<PlayerInput>(gameObject);
+            animator = VerifyReferenceComponent<Animator>(gameObject);
+            cameraController = VerifyReferenceComponent<CameraController>(Camera.main.gameObject);
         }
 
         /// <summary>
@@ -179,6 +177,15 @@ namespace Assets.Scripts.Player
 
         #endregion
 
+        #region Combat
+
+        private void Combat()
+        {
+
+        }
+
+        #endregion
+
         #region Helpers
 
         /// <summary>
@@ -190,6 +197,16 @@ namespace Assets.Scripts.Player
             _ => true
         };
 
+        /// <summary>
+        /// Fetches a required component from the target GameObject and logs an error if missing.
+        /// </summary>
+        private T VerifyReferenceComponent<T>(GameObject target) where T : Component
+        {
+            if (target != null && target.TryGetComponent<T>(out var component)) return component;
+
+            Debug.LogError($"[{gameObject.name}] Missing required component: {typeof(T).Name} on {(target != null ? target.name : "null")}", this);
+            return null;
+        }
         #endregion
 
         #region Animation
