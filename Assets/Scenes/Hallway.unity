@@ -425,6 +425,12 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: f20ff6643b86cb7ddbfc32d6a7e1aef0, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1320375533}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: f20ff6643b86cb7ddbfc32d6a7e1aef0, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1320375536}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: f20ff6643b86cb7ddbfc32d6a7e1aef0, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1320375537}
   m_SourcePrefab: {fileID: 100100000, guid: f20ff6643b86cb7ddbfc32d6a7e1aef0, type: 3}
 --- !u!1 &1320375532 stripped
 GameObject:
@@ -478,6 +484,35 @@ CharacterController:
   m_SkinWidth: 0.08
   m_MinMoveDistance: 0.001
   m_Center: {x: 0, y: 1, z: 0}
+--- !u!114 &1320375536
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1320375532}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f135cefd6ae03ce7bb32a61bdb71f076, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Assets.Scripts.PlayerController
+  speed: 0
+--- !u!114 &1320375537
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1320375532}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2355e840dc5ccad8d8ab6024ca78d631, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Assets.Scripts.PlayerInput
+  moveInput: {x: 0, y: 0}
+  jump: 0
+  sprint: 0
+  attack: 0
 --- !u!1 &1696007276
 GameObject:
   m_ObjectHideFlags: 0
@@ -584,6 +619,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 01a640ef822be2e3498eabeaaf5fee6b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
+  cameraSettings:
+    offset: {x: 0, y: 1.5, z: -3}
+    smoothTime: 1
+    rotationSmoothSpeed: 10
+    currentVelocity: {x: 0, y: 0, z: 0}
 --- !u!114 &1696007281
 MonoBehaviour:
   m_ObjectHideFlags: 0

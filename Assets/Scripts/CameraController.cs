@@ -61,7 +61,6 @@ namespace Assets.Scripts
             if (playerInput.moveInput.sqrMagnitude <= 0.01f) return Vector3.zero;
 
             Transform cam = Camera.main.transform;
-
             Vector3 forward = new Vector3(cam.forward.x, 0f, cam.forward.z).normalized;
             Vector3 right = new Vector3(cam.right.x, 0f, cam.right.z).normalized;
 
