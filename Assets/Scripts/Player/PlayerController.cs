@@ -62,7 +62,7 @@ namespace Assets.Scripts.Player
         /// </summary>
         private void Update()
         {
-            HandleMovementAndActions();
+            Controls();
             CameraRotate();
         }
 
@@ -73,7 +73,7 @@ namespace Assets.Scripts.Player
         /// <summary>
         /// Handles player movement, actions (like attacks), and locomotion animations.
         /// </summary>
-        private void HandleMovementAndActions()
+        private void Controls()
         {
             // Check if the current action has completed
             if (!CanMove)
